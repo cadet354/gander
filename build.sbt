@@ -1,26 +1,14 @@
 import sbt._
 
-organization := "com.intenthq"
-
-organizationName := "Intent HQ"
-
-organizationHomepage := Some(url("http://www.intenthq.com"))
-
 name := "gander"
 
 description := "Extracts text, metadata from web pages."
 
-homepage := Some(url("https://github.com/intenthq/gander"))
-
-developers := List(
-  Developer(id = "albertpastrana", name = "Albert Pastrana", email = "", url = new URL("https://github.com/albertpastrana")),
-  Developer(id = "ArturSoler", name = "Artur Soler", email = "", url = new URL("https://github.com/ArturSoler"))
-)
 
 scmInfo := Some(
   ScmInfo(
-    browseUrl = new URL("https://github.com/intenthq/gander"),
-    connection = "scm:git:git@github.com:intenthq/gander.git"
+    browseUrl = new URL("https://github.com/cadet354"),
+    connection = "scm:git:git@github.com:cadet354/gander.git"
   )
 )
 
@@ -55,9 +43,5 @@ libraryDependencies ++= Seq(
 )
 
 scalacOptions ++= Seq("-unchecked", "-deprecation")
-
-publishTo := Some("Sonatype Snapshots Nexus" at "https://oss.sonatype.org/service/local/staging/deploy/maven2")
-
-releasePublishArtifactsAction := PgpKeys.publishSigned.value
 
 lazy val root = project.in(file(".")).configs(IntegrationTest)

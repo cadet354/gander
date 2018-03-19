@@ -16,9 +16,10 @@ case class PageInfo(title: String,
                     metaDescription: String,
                     metaKeywords: String,
                     lang: Option[String],
+                    cleanedText: String,
                     canonicalLink: Option[String],
                     openGraphData: OpenGraphData,
-                    cleanedText: Option[String] = None,
+                    probablyMainText: Option[String] = None,
                     links: Seq[Link] = Seq.empty,
                     publishDate: Option[Date] = None)
 
@@ -32,6 +33,7 @@ object Gander {
       val publishDate = extractDate(doc).map(_.toDate).orElse(canonicalLink.flatMap(extractDateFromURL))
 
       val rawTitle = extractTitle(doc)
+      val cleanedDoc = DocumentCleaner.clean(doc)
       val info = PageInfo(title = rawTitle,
                           processedTitle = processTitle(rawTitle, canonicalLink),
                           metaDescription = extractMetaDescription(doc),
@@ -39,14 +41,14 @@ object Gander {
                           lang = extractLang(doc),
                           canonicalLink = canonicalLink,
                           publishDate = publishDate,
-                          openGraphData = OpenGraphData(doc)
+                          openGraphData = OpenGraphData(doc),
+        cleanedText = cleanedDoc.text()
       )
 
-      val cleanedDoc = DocumentCleaner.clean(doc)
       calculateBestNodeBasedOnClustering(cleanedDoc, lang).map { node =>
         //some mutability beauty
         postExtractionCleanup(node, lang)
-        info.copy(cleanedText = Some(node.text()),
+        info.copy(probablyMainText = Some(node.text()),
                   links = extractLinks(node))
       }.getOrElse(info)
     }

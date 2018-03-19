@@ -27,7 +27,7 @@ class GanderSpec extends Specification {
     pageInfo.metaKeywords must_== metaKeywords
     pageInfo.lang must_== lang
     pageInfo.publishDate must_== date.map(DateTime.parse(_).toDate)
-    pageInfo.cleanedText.get must startWith(content)
+    pageInfo.probablyMainText.get must startWith(content)
     pageInfo.canonicalLink.map( _ must_== url).getOrElse(1 must_== 1)
     pageInfo.links must_== links
   }
@@ -36,7 +36,7 @@ class GanderSpec extends Specification {
     //Some pages (like the Apple Watch one) contain this char instead of a space
     //For more info check https://en.wikipedia.org/wiki/Non-breaking_space
     val url = "http://www.apple.com/watch/"
-    extract(url).cleanedText.get must contain("Apple Watch")
+    extract(url).probablyMainText.get must contain("Apple Watch")
   }
 
   "intenthq" >> {
