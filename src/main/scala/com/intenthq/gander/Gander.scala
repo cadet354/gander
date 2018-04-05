@@ -1,6 +1,6 @@
 package com.intenthq.gander
 
-import java.util.Date
+import java.time.LocalDate
 
 import com.intenthq.gander.extractors.ContentExtractor._
 import com.intenthq.gander.opengraph.OpenGraphData
@@ -21,7 +21,7 @@ case class PageInfo(title: String,
                     openGraphData: OpenGraphData,
                     probablyMainText: Option[String] = None,
                     links: Seq[Link] = Seq.empty,
-                    publishDate: Option[Date] = None)
+                    publishDate: Option[LocalDate] = None)
 
 object Gander {
 
@@ -30,7 +30,7 @@ object Gander {
     val sanitised = html.replace(' ', ' ')
     Try(Jsoup.parse(sanitised)).toOption.map { doc =>
       val canonicalLink = extractCanonicalLink(doc)
-      val publishDate = extractDate(doc).map(_.toDate).orElse(canonicalLink.flatMap(extractDateFromURL))
+      val publishDate = extractDate(doc).orElse(canonicalLink.flatMap(extractDateFromURL))
 
       val rawTitle = extractTitle(doc)
       val cleanedDoc = DocumentCleaner.clean(doc)

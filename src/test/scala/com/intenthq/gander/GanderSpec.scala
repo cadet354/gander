@@ -3,13 +3,17 @@ package com.intenthq.gander
 import java.io.InputStreamReader
 import java.net.URL
 import java.nio.charset.Charset
+import java.time.format.DateTimeFormatter
+import java.time.{LocalDate, LocalDateTime, OffsetDateTime}
 import java.util.zip.GZIPInputStream
 
 import com.google.common.base.Charsets
 import com.google.common.io.CharStreams
 import com.intenthq.gander.opengraph.OpenGraphData
-import org.joda.time.DateTime
+import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
+
+import scala.util.Try
 
 class GanderSpec extends Specification {
 
@@ -20,13 +24,17 @@ class GanderSpec extends Specification {
   }
 
   def check(pageInfo: PageInfo, title: String, processedTitle: String, metaDescription: String, metaKeywords: String,
-            lang: Option[String], date: Option[String], content: String, url: String, links: Seq[Link]) = {
+            lang: Option[String], date: Option[String], content: String, url: String, links: Seq[Link]): MatchResult[Any] = {
     pageInfo.title must_== title
     pageInfo.processedTitle must_== processedTitle
     pageInfo.metaDescription must_== metaDescription
     pageInfo.metaKeywords must_== metaKeywords
     pageInfo.lang must_== lang
-    pageInfo.publishDate must_== date.map(DateTime.parse(_).toDate)
+    pageInfo.publishDate must_== date.map(d =>
+      Try{OffsetDateTime.parse(d, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toLocalDate}
+          .getOrElse(
+            Try{OffsetDateTime.parse(d, DateTimeFormatter.ISO_LOCAL_DATE_TIME).toLocalDate}
+              .getOrElse(LocalDate.parse(d))))
     pageInfo.probablyMainText.get must startWith(content)
     pageInfo.canonicalLink.map( _ must_== url).getOrElse(1 must_== 1)
     pageInfo.links must_== links
@@ -159,7 +167,7 @@ class GanderSpec extends Specification {
       metaDescription = "Emerson Le&atilde;o cobra lideran&ccedil;a ao S&atilde;o Paulo (Foto: M&aacute;rio &Acirc;ngelo / Ag. Estado) Emerson Le&atilde;o n&atilde;o foi ao campo na manh&atilde; desta ter&ccedil;a-feira no centro de treinamento do S&atilde;o Paulo. Bem humorado e com roupa casual, preferiu acompanhar de longe ...",
       metaKeywords = "notícias, notícia, são paulo",
       lang = None,
-      date = Some("2012-04-03T13:49"),
+      date = Some("2012-04-01"),
       links = List())
   }
 
@@ -174,7 +182,7 @@ class GanderSpec extends Specification {
                     image = Some(new URL("http://ep00.epimg.net/internacional/imagenes/2015/07/28/actualidad/1438076596_960360_1438078067_noticia_normal.jpg")),
                     `type` = Some("article"),
                     locale = None,
-                    publishedTime = Some(new DateTime(2015, 7, 29, 0, 0)))
+                    publishedTime = Some(LocalDate.of(2015, 7, 29)))
 
   }
 

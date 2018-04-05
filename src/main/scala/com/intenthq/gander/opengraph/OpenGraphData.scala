@@ -16,9 +16,8 @@ Copyright [2014] Robby Pond
 package com.intenthq.gander.opengraph
 
 import java.net.URL
+import java.time.LocalDate
 
-import org.joda.time.DateTime
-import org.joda.time.format.ISODateTimeFormat
 import org.jsoup.nodes.Element
 
 import scala.util.Try
@@ -30,14 +29,14 @@ case class OpenGraphData(title: Option[String] = None,
                          image: Option[URL] = None,
                          `type`: Option[String] = None,
                          locale: Option[String] = None,
-                         publishedTime: Option[DateTime] = None)
+                         publishedTime: Option[LocalDate] = None)
 object OpenGraphData {
 
   def apply(elem: Element): OpenGraphData = {
     def attr(property: String): Option[String] =
       Option(elem.select(s"meta[property=$property]").first()).map(_.attr("content"))
     def url(x: String) = Try(new URL(x)).toOption
-    def date(x: String) = Try(ISODateTimeFormat.dateTimeParser.parseDateTime(x)).toOption
+    def date(x: String) = Try(LocalDate.parse(x)).toOption
 
     OpenGraphData(title = attr("og:title"),
                   siteName = attr("og:site_name"),

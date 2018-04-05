@@ -1,14 +1,14 @@
 package com.intenthq.gander.opengraph
 
 import java.net.URL
+import java.time.LocalDate
 
-import org.joda.time.DateTime
 import org.jsoup.Jsoup
 import org.specs2.mutable.Specification
 
 class OpenGraphDataSpec extends Specification {
 
-  def html(property: String, value: String) =
+  def html(property: String, value: String): String =
       s"""<html><head>
          |<meta property="$property" content="$value" />
          |</head><body></body></html>""".stripMargin
@@ -60,7 +60,7 @@ class OpenGraphDataSpec extends Specification {
     }
     "should extract the article:published_time correctly" >> {
       val elem = Jsoup.parse(html("article:published_time", "2015-07-31"))
-      OpenGraphData(elem).publishedTime must beSome(new DateTime(2015, 7, 31, 0, 0))
+      OpenGraphData(elem).publishedTime must beSome(LocalDate.of(2015, 7, 31))
     }
     "should return none the article:published_time is not a valid date" >> {
       val elem = Jsoup.parse(html("article:published_time", "not a valid date"))

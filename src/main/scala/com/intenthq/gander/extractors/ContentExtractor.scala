@@ -2,13 +2,13 @@ package com.intenthq.gander.extractors
 
 import java.net.URL
 import java.text.Normalizer
-import java.util.Date
+import java.time.{LocalDate, OffsetDateTime}
+import java.time.format.DateTimeFormatter
 import java.util.regex.Pattern
 
 import com.intenthq.gander.Link
 import com.intenthq.gander.text.{StopWords, WordStats}
 import com.intenthq.gander.utils.JSoup._
-import org.joda.time.DateTime
 import org.jsoup.nodes.{Document, Element}
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -16,7 +16,6 @@ import scala.collection.convert.Wrappers.JListWrapper
 import scala.collection.mutable
 import scala.math._
 import scala.util.Try
-import org.joda.time.format.ISODateTimeFormat.dateTimeParser
 
 
 object ContentExtractor {
@@ -50,7 +49,7 @@ object ContentExtractor {
       )
     )
 
-  def extractDate(doc: Document): Option[DateTime] = {
+  def extractDate(doc: Document): Option[LocalDate] = {
     metaContent("property=article:published_time")(doc).orElse(
       metaContent("name=DCTERMS.created")(doc).orElse(
         select("time[class=dt-published published entry-date]")(doc).headOption.map(_.attr("datetime").trim).orElse(
@@ -64,12 +63,18 @@ object ContentExtractor {
     ).flatMap(x =>
       // replaceAll("/","-") is needed as ISODateTimeFormat will block on /
       // e.g. http://www.bbc.co.uk/sport/0/football/34203622
-      Try(dateTimeParser.parseDateTime(x.replaceAll("/","-"))).toOption
+      Try(
+        OffsetDateTime.parse(x.replaceAll("/","-"), DateTimeFormatter.ISO_OFFSET_DATE_TIME).toLocalDate
+      ).toOption.orElse(
+        Try(LocalDate.parse(x.replaceAll("/","-"))).toOption
+      )
     )
   }
 
-  private def metaContent(metaName: String)(implicit doc: Document): Option[String] =
+  private def metaContent(metaName: String)(implicit doc: Document): Option[String] = {
     select(s"meta[$metaName]").headOption.map(_.attr("content").trim)
+  }
+
 
   /**
   * if the article has meta description set in the source, use that
@@ -96,7 +101,7 @@ object ContentExtractor {
       select("meta[name=twitter:url]").headOption.map(_.attr("abs:content"))
     ).map(_.trim)
 
-  def extractDateFromURL(url: String): Option[Date] = {
+  def extractDateFromURL(url: String): Option[LocalDate] = {
     def findYearMonthAndDay(segments: Array[String]): (Option[Int], Option[Int], Option[Int]) = {
       def findMonthAndDay(segments: Array[String]): (Option[Int], Option[Int]) = {
         def findDay(segment: String): Option[Int] = Try(segment.toInt).filter(d => d >= 1 && d <= 31).toOption
@@ -119,7 +124,7 @@ object ContentExtractor {
     year.map { y =>
       val m = month.getOrElse(1)
       val d = day.getOrElse(1)
-      new DateTime(y, m, d, 0, 0).toDate
+      LocalDate.of(y, m, d)
     }
   }
 
